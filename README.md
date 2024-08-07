@@ -47,3 +47,7 @@ A simple and efficient web-based tool for managing and tracking inventory items.
 - **Delete Items:** Click "Remove" to delete items.
 - **Filter Items:** Use the search input and category dropdown.
 - **Pagination:** Navigate using "Previous" and "Next" buttons.
+  <<<<<<< HEAD
+  =======
+
+> > > > > > > bdb23d19eb60672b0869ab15a080af4db1c60b32

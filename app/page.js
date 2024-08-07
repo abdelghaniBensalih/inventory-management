@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { firestore } from "@/firebase";
 import {
@@ -9,41 +8,95 @@ import {
   Stack,
   TextField,
   Button,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import {
   collection,
   getDocs,
-  query,
   doc,
   deleteDoc,
   setDoc,
   getDoc,
 } from "firebase/firestore";
 
+const ITEMS_PER_PAGE = 10;
+
 export default function Home() {
+  // State variables
   const [inventory, setInventory] = useState([]);
+  const [filteredInventory, setFilteredInventory] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState("");
+  const [itemCategory, setItemCategory] = useState("");
+  const [filter, setFilter] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Fetch inventory data from Firestore
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, "inventory"));
-    const docs = await getDocs(snapshot);
+    const categorySnapshot = await getDocs(collection(firestore, "inventory"));
     const inventoryList = [];
-    docs.forEach((doc) => {
+    const categoriesList = [];
+
+    for (const categoryDoc of categorySnapshot.docs) {
+      const itemsSnapshot = await getDocs(
+        collection(firestore, "inventory", categoryDoc.id, "items")
+      );
+
+      const items = itemsSnapshot.docs.map((itemDoc) => ({
+        name: itemDoc.id,
+        ...itemDoc.data(),
+      }));
+
       inventoryList.push({
-        name: doc.id,
-        ...doc.data(),
+        category: categoryDoc.id,
+        items,
       });
-    });
+
+      categoriesList.push(categoryDoc.id);
+    }
+
     setInventory(inventoryList);
+    setCategories(categoriesList);
+    setFilteredInventory(inventoryList);
   };
 
+  // Load inventory data on component mount
   useEffect(() => {
     updateInventory();
   }, []);
 
-  const addItem = async (item) => {
-    const docRef = doc(collection(firestore, "inventory"), item);
+  // Filter inventory based on search and selected category
+  useEffect(() => {
+    setFilteredInventory(
+      inventory
+        .filter(
+          (category) =>
+            (selectedCategory === "" ||
+              category.category === selectedCategory) &&
+            category.items.some((item) =>
+              item.name.toLowerCase().includes(filter.toLowerCase())
+            )
+        )
+        .map((category) => ({
+          ...category,
+          items: category.items.filter((item) =>
+            item.name.toLowerCase().includes(filter.toLowerCase())
+          ),
+        }))
+    );
+  }, [filter, inventory, selectedCategory]);
+
+  // Add item to inventory
+  const addItem = async (item, category) => {
+    const docRef = doc(
+      collection(firestore, "inventory", category, "items"),
+      item
+    );
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const { quantity } = docSnap.data();
@@ -54,8 +107,9 @@ export default function Home() {
     await updateInventory();
   };
 
-  const reduceItem = async (item) => {
-    const docRef = doc(firestore, "inventory", item);
+  // Reduce item quantity or remove item if quantity is 1
+  const reduceItem = async (item, category) => {
+    const docRef = doc(firestore, "inventory", category, "items", item);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const { quantity } = docSnap.data();
@@ -68,8 +122,9 @@ export default function Home() {
     await updateInventory();
   };
 
-  const removeItem = async (item) => {
-    const docRef = doc(firestore, "inventory", item);
+  // Remove item from inventory
+  const removeItem = async (item, category) => {
+    const docRef = doc(firestore, "inventory", category, "items", item);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       await deleteDoc(docRef);
@@ -77,8 +132,38 @@ export default function Home() {
     await updateInventory();
   };
 
+  // Open and close modal for adding items
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  // Pagination controls
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(filteredInventory.length / ITEMS_PER_PAGE)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Get paginated items for display
+  const getPaginatedItems = () => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedItems = [];
+    filteredInventory.forEach(({ category, items }) => {
+      if (startIndex < items.length) {
+        paginatedItems.push({
+          category,
+          items: items.slice(startIndex, Math.min(endIndex, items.length)),
+        });
+      }
+    });
+    return paginatedItems;
+  };
 
   return (
     <Box
@@ -86,27 +171,31 @@ export default function Home() {
       height="100vh"
       display="flex"
       flexDirection="column"
-      justifyContent="center"
       alignItems="center"
-      gap={2}
+      bgcolor="#f5f5f5"
+      overflow="auto" // Allow scrolling
     >
+      {/* Modal for adding new item */}
       <Modal open={open} onClose={handleClose}>
         <Box
           position="absolute"
           top="50%"
           left="50%"
           transform="translate(-50%, -50%)"
-          width={400}
-          bgcolor="white"
-          border="2px solid #000"
-          boxShadow={24}
+          width="90%"
+          maxWidth="400px"
+          bgcolor="#fff"
+          borderRadius={2}
+          boxShadow={3}
           display="flex"
           flexDirection="column"
-          gap={3}
-          p={4}
+          gap={2}
+          p={3}
         >
-          <Typography variant="h6">Add Item</Typography>
-          <Stack width="100%" direction="row" spacing={2}>
+          <Typography variant="h6" color="#333">
+            Add Item
+          </Typography>
+          <Stack width="100%" direction="column" spacing={2}>
             <TextField
               label="Item Name"
               variant="outlined"
@@ -114,11 +203,28 @@ export default function Home() {
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
             />
+            <FormControl fullWidth>
+              <InputLabel id="category-label">Category</InputLabel>
+              <Select
+                labelId="category-label"
+                value={itemCategory}
+                onChange={(e) => setItemCategory(e.target.value)}
+                label="Category"
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <Button
-              variant="outlined"
+              variant="contained"
+              color="primary"
               onClick={() => {
-                addItem(itemName);
+                addItem(itemName, itemCategory);
                 setItemName("");
+                setItemCategory("");
                 handleClose();
               }}
             >
@@ -128,72 +234,179 @@ export default function Home() {
         </Box>
       </Modal>
 
+      {/* Main Content */}
       <Typography
-        variant="h3"
-        style={{
+        variant="h4"
+        sx={{
           color: "#333",
-          margin: "40px 0 20px 0",
-          backgroundColor: "#f0f0f0",
-          fontWeight: "bold",
-          padding: "10px 0",
+          margin: "20px 0",
+          backgroundColor: "#e3f2fd",
+          padding: "10px",
           textAlign: "center",
+          width: "100%",
+          fontWeight: "bold",
+          borderRadius: 2,
         }}
       >
         Welcome to your Inventory Management
       </Typography>
 
-      <Box border="1px solid #333">
+      <Box border="1px solid #ddd" width="100%" maxWidth="1200px" padding={2}>
+        {/* Header */}
         <Box
-          width="800px"
           height="80px"
-          bgcolor="#ADD8E6"
+          bgcolor="#bbdefb"
           display="flex"
           alignItems="center"
           justifyContent="center"
+          borderRadius={1}
+          marginBottom={2}
         >
-          <Typography variant="h4" color="#333" textAlign="center">
+          <Typography variant="h5" color="#333">
             All your Inventory Items
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          style={{ margin: "15px" }}
-          onClick={handleOpen}
+
+        {/* Action buttons and filters */}
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", sm: "row" }}
+          alignItems="center"
+          justifyContent="space-between"
+          padding={2}
+          gap={2}
+          marginBottom={2}
         >
-          Add New Item
-        </Button>
-        <Stack width="800px" height="300px" spacing={2} overflow="auto">
-          {inventory.map(({ name, quantity }) => (
-            <Box
-              key={name}
-              width="100%"
-              minHeight="150px"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              bgcolor="#f0f0f0"
-              padding={5}
+          <Button variant="contained" color="primary" onClick={handleOpen}>
+            Add New Item
+          </Button>
+          <Typography variant="h6" color="#333">
+            Total:{" "}
+            {filteredInventory.reduce(
+              (sum, category) => sum + category.items.length,
+              0
+            )}{" "}
+            items
+          </Typography>
+        </Box>
+
+        {/* Filters */}
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", sm: "row" }}
+          alignItems="center"
+          padding={2}
+          gap={2}
+          marginBottom={2}
+        >
+          <TextField
+            label="Filter items"
+            variant="outlined"
+            fullWidth
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          <FormControl fullWidth>
+            <InputLabel id="filter-category-label">Category</InputLabel>
+            <Select
+              labelId="filter-category-label"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              label="Category"
             >
-              <Typography variant="h3" color="#333" textAlign="center">
-                {name.charAt(0).toUpperCase() + name.slice(1)}
+              <MenuItem value="">All Categories</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        {/* Display items with pagination */}
+        <Stack width="100%" maxHeight="60vh" overflow="auto" padding={2}>
+          {getPaginatedItems().map(({ category, items }) => (
+            <Box key={category} marginBottom={2}>
+              <Typography variant="h6" color="#333">
+                {category}
               </Typography>
-              <Typography variant="h3" color="#333" textAlign="center">
-                {quantity}
-              </Typography>
-              <Stack direction="row" spacing={2}>
-                <Button variant="contained" onClick={() => addItem(name)}>
-                  Add
-                </Button>
-                <Button variant="contained" onClick={() => reduceItem(name)}>
-                  Reduce
-                </Button>
-                <Button variant="contained" onClick={() => removeItem(name)}>
-                  Remove
-                </Button>
-              </Stack>
+              {items.map(({ name, quantity }) => (
+                <Box
+                  key={name}
+                  display="flex"
+                  flexDirection="column"
+                  gap={1}
+                  padding={2}
+                  bgcolor="#e3f2fd"
+                  borderRadius={1}
+                  boxShadow={1}
+                  marginBottom={1}
+                >
+                  <Typography variant="h5" color="#333">
+                    {name.charAt(0).toUpperCase() + name.slice(1)}
+                  </Typography>
+                  <Typography variant="h6" color="#333">
+                    Quantity: {quantity}
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => addItem(name, category)}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => reduceItem(name, category)}
+                    >
+                      Reduce
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={() => removeItem(name, category)}
+                    >
+                      Remove
+                    </Button>
+                  </Stack>
+                </Box>
+              ))}
             </Box>
           ))}
         </Stack>
+
+        {/* Pagination controls */}
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          padding={2}
+        >
+          <Button
+            variant="contained"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Typography variant="body1" color="#333" marginX={2}>
+            Page {currentPage} of{" "}
+            {Math.ceil(filteredInventory.length / ITEMS_PER_PAGE)}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={handleNextPage}
+            disabled={
+              currentPage ===
+              Math.ceil(filteredInventory.length / ITEMS_PER_PAGE)
+            }
+          >
+            Next
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { firestore } from "@/firebase";
 import {
@@ -25,7 +26,6 @@ import {
 const ITEMS_PER_PAGE = 10;
 
 export default function Home() {
-  // State variables
   const [inventory, setInventory] = useState([]);
   const [filteredInventory, setFilteredInventory] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -36,7 +36,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch inventory data from Firestore
+  // Function to update the inventory from Firestore
   const updateInventory = async () => {
     const categorySnapshot = await getDocs(collection(firestore, "inventory"));
     const inventoryList = [];
@@ -65,12 +65,10 @@ export default function Home() {
     setFilteredInventory(inventoryList);
   };
 
-  // Load inventory data on component mount
   useEffect(() => {
     updateInventory();
   }, []);
 
-  // Filter inventory based on search and selected category
   useEffect(() => {
     setFilteredInventory(
       inventory
@@ -91,7 +89,6 @@ export default function Home() {
     );
   }, [filter, inventory, selectedCategory]);
 
-  // Add item to inventory
   const addItem = async (item, category) => {
     const docRef = doc(
       collection(firestore, "inventory", category, "items"),
@@ -107,7 +104,6 @@ export default function Home() {
     await updateInventory();
   };
 
-  // Reduce item quantity or remove item if quantity is 1
   const reduceItem = async (item, category) => {
     const docRef = doc(firestore, "inventory", category, "items", item);
     const docSnap = await getDoc(docRef);
@@ -122,7 +118,6 @@ export default function Home() {
     await updateInventory();
   };
 
-  // Remove item from inventory
   const removeItem = async (item, category) => {
     const docRef = doc(firestore, "inventory", category, "items", item);
     const docSnap = await getDoc(docRef);
@@ -132,11 +127,9 @@ export default function Home() {
     await updateInventory();
   };
 
-  // Open and close modal for adding items
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // Pagination controls
   const handleNextPage = () => {
     if (currentPage < Math.ceil(filteredInventory.length / ITEMS_PER_PAGE)) {
       setCurrentPage(currentPage + 1);
@@ -149,7 +142,6 @@ export default function Home() {
     }
   };
 
-  // Get paginated items for display
   const getPaginatedItems = () => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -175,7 +167,6 @@ export default function Home() {
       bgcolor="#f5f5f5"
       overflow="auto" // Allow scrolling
     >
-      {/* Modal for adding new item */}
       <Modal open={open} onClose={handleClose}>
         <Box
           position="absolute"
@@ -234,7 +225,6 @@ export default function Home() {
         </Box>
       </Modal>
 
-      {/* Main Content */}
       <Typography
         variant="h4"
         sx={{
@@ -252,7 +242,6 @@ export default function Home() {
       </Typography>
 
       <Box border="1px solid #ddd" width="100%" maxWidth="1200px" padding={2}>
-        {/* Header */}
         <Box
           height="80px"
           bgcolor="#bbdefb"
@@ -266,8 +255,6 @@ export default function Home() {
             All your Inventory Items
           </Typography>
         </Box>
-
-        {/* Action buttons and filters */}
         <Box
           display="flex"
           flexDirection={{ xs: "column", sm: "row" }}
@@ -289,8 +276,6 @@ export default function Home() {
             items
           </Typography>
         </Box>
-
-        {/* Filters */}
         <Box
           display="flex"
           flexDirection={{ xs: "column", sm: "row" }}
@@ -323,8 +308,6 @@ export default function Home() {
             </Select>
           </FormControl>
         </Box>
-
-        {/* Display items with pagination */}
         <Stack width="100%" maxHeight="60vh" overflow="auto" padding={2}>
           {getPaginatedItems().map(({ category, items }) => (
             <Box key={category} marginBottom={2}>
@@ -377,8 +360,6 @@ export default function Home() {
             </Box>
           ))}
         </Stack>
-
-        {/* Pagination controls */}
         <Box
           display="flex"
           justifyContent="center"

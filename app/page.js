@@ -181,7 +181,7 @@ export default function Home() {
           display="flex"
           flexDirection="column"
           gap={2}
-          p={3}
+          p={2}
         >
           <Typography variant="h6" color="#333">
             Add Item
@@ -229,7 +229,7 @@ export default function Home() {
         variant="h4"
         sx={{
           color: "#333",
-          margin: "20px 0",
+          margin: "7px 0",
           backgroundColor: "#e3f2fd",
           padding: "10px",
           textAlign: "center",
@@ -249,7 +249,7 @@ export default function Home() {
           alignItems="center"
           justifyContent="center"
           borderRadius={1}
-          marginBottom={2}
+          marginBottom={1}
         >
           <Typography variant="h5" color="#333">
             All your Inventory Items
@@ -260,9 +260,9 @@ export default function Home() {
           flexDirection={{ xs: "column", sm: "row" }}
           alignItems="center"
           justifyContent="space-between"
-          padding={2}
-          gap={2}
-          marginBottom={2}
+          padding={1}
+          gap={1}
+          marginBottom={1}
         >
           <Button variant="contained" color="primary" onClick={handleOpen}>
             Add New Item
@@ -280,9 +280,9 @@ export default function Home() {
           display="flex"
           flexDirection={{ xs: "column", sm: "row" }}
           alignItems="center"
-          padding={2}
-          gap={2}
-          marginBottom={2}
+          padding={1}
+          gap={1}
+          marginBottom={1}
         >
           <TextField
             label="Filter items"
@@ -310,7 +310,7 @@ export default function Home() {
         </Box>
         <Stack width="100%" maxHeight="60vh" overflow="auto" padding={2}>
           {getPaginatedItems().map(({ category, items }) => (
-            <Box key={category} marginBottom={2}>
+            <Box key={category} marginBottom={1}>
               <Typography variant="h6" color="#333">
                 {category}
               </Typography>

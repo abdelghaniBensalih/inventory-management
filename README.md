@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Inventory Management Application
 
-## Getting Started
+## Introduction
 
-First, run the development server:
+A simple and efficient web-based tool for managing and tracking inventory items. Easily add, update, filter, and delete items across various categories with a responsive and user-friendly interface.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+![preview](./preview.png)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Skills Used
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **React**
+- **Firebase Firestore**
+- **Material-UI**
+- **Next.js**
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Features
 
-## Learn More
+- Add, update, and delete items
+- Filter items by name and category
+- Pagination for easy navigation
+- Responsive design for mobile and desktop
 
-To learn more about Next.js, take a look at the following resources:
+## Installation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/yourusername/inventory-management.git
+   cd inventory-management
+   ```
+2. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+3. **Set up Firebase:**
+   - Create a Firebase project and add a web app.
+   - Replace the placeholder in `firebase.js` with your Firebase config.
+4. **Start the development server:**
+   ```sh
+   npm run dev
+   ```
+5. **Open your browser:** Navigate to `http://localhost:3000`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Usage
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **Add Items:** Click "Add New Item", fill in details, and save.
+- **Update Items:** Use "Add" and "Reduce" buttons to adjust quantities.
+- **Delete Items:** Click "Remove" to delete items.
+- **Filter Items:** Use the search input and category dropdown.
+- **Pagination:** Navigate using "Previous" and "Next" buttons.

@@ -252,7 +252,7 @@ export default function Home() {
           marginBottom={1}
         >
           <Typography variant="h5" color="#333">
-            All your Inventory Items
+            Track all your inventory items here
           </Typography>
         </Box>
         <Box

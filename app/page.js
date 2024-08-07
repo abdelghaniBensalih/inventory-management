@@ -128,24 +128,40 @@ export default function Home() {
         </Box>
       </Modal>
 
-      <Button variant="contained" onClick={handleOpen}>
-        Add New Item
-      </Button>
+      <Typography
+        variant="h3"
+        style={{
+          color: "#333",
+          margin: "40px 0 20px 0",
+          backgroundColor: "#f0f0f0",
+          fontWeight: "bold",
+          padding: "10px 0",
+          textAlign: "center",
+        }}
+      >
+        Welcome to your Inventory Management
+      </Typography>
 
       <Box border="1px solid #333">
         <Box
           width="800px"
-          height="100px"
+          height="80px"
           bgcolor="#ADD8E6"
           display="flex"
           alignItems="center"
           justifyContent="center"
         >
-          <Typography variant="h2" color="#333">
-            Inventory Items
+          <Typography variant="h4" color="#333" textAlign="center">
+            All your Inventory Items
           </Typography>
         </Box>
-
+        <Button
+          variant="contained"
+          style={{ margin: "15px" }}
+          onClick={handleOpen}
+        >
+          Add New Item
+        </Button>
         <Stack width="800px" height="300px" spacing={2} overflow="auto">
           {inventory.map(({ name, quantity }) => (
             <Box

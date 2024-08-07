@@ -440,3 +440,16 @@ export default function Home() {
 }
 
   
+................................................
+<Box
+          width="800px"
+          height="80px"
+          bgcolor="#ADD8E6"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Typography variant="h4" color="#333" textAlign="center">
+            All your Inventory Items
+          </Typography>
+        </Box>
